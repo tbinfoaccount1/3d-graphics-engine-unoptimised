@@ -75,3 +75,66 @@ void close()
     //Quit SDL subsystems
     SDL_Quit();
 }
+
+
+int main(int argc, char* args[])
+{
+    //Final exit code
+    int exitCode{ 0 };
+
+    int blueCount{ 240 };
+
+	constexpr int framesBeforeBlueChange{ 5000 };
+	int currentFrameCount{ 0 };
+
+
+    //Initialize
+    if (init() == false)
+    {
+        SDL_Log("Unable to initialize program!\n");
+        exitCode = 1;
+    }
+    else
+    {
+        //The quit flag
+        bool quit{ false };
+
+        //The event data
+        SDL_Event e;
+        SDL_zero(e);
+
+        //The main loop
+        while (quit == false)
+        {
+            //Get event data
+            while (SDL_PollEvent(&e))
+            {
+                //If event is quit type
+                if (e.type == SDL_EVENT_QUIT)
+                {
+                    //End the main loop
+                    quit = true;
+                }
+            }
+            //Fill the surface with changing blueish color
+			currentFrameCount++;
+            if (currentFrameCount >= framesBeforeBlueChange)
+            {
+                currentFrameCount = 0;
+				blueCount = (blueCount + 200) % 256;
+            }
+            SDL_FillSurfaceRect(gScreenSurface, nullptr, SDL_MapSurfaceRGB(gScreenSurface, 140, 140, blueCount));
+
+            //Render image on screen
+            SDL_BlitSurface(gHelloWorld, nullptr, gScreenSurface, nullptr);
+
+            //Update the surface
+            SDL_UpdateWindowSurface(gWindow);
+        }
+    }
+
+    //Clean up
+    close();
+
+    return exitCode;
+}
