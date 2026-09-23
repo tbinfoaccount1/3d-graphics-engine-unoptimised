@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="unoptimised-graphics-engine/unoptimised-graphics-engine.vcxproj" Id="8d99d41b-82c5-49f1-b3c8-764cb8d36d72" />
+</Solution>
