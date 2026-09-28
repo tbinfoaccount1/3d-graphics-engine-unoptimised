@@ -10,24 +10,13 @@
 constexpr int kScreenWidth{ 640 };
 constexpr int kScreenHeight{ 480 };
 
-
-/* Function Prototypes */
-//Starts up SDL and creates window
 bool init();
-
-//Frees media and shuts down SDL
 void close();
 
 
-/* Global Variables */
-//The window we'll be rendering to
-SDL_Window* gWindow{ nullptr };
 
-//The surface contained by the window
-SDL_Surface* gScreenSurface{ nullptr };
-
-//The image we will load and show on the screen
-SDL_Surface* gHelloWorld{ nullptr };
+SDL_Window* window{ nullptr };
+SDL_Surface* screenSurface{ nullptr };
 
 
 /* Function Implementations */
@@ -45,15 +34,14 @@ bool init()
     else
     {
         //Create window
-        if (gWindow = SDL_CreateWindow("3D Graphics Engine - unoptimised", kScreenWidth, kScreenHeight, 0); gWindow == nullptr)
+        if (window = SDL_CreateWindow("3D Graphics Engine - unoptimised", kScreenWidth, kScreenHeight, 0); window == nullptr)
         {
             SDL_Log("Window could not be created! SDL error: %s\n", SDL_GetError());
             success = false;
         }
         else
         {
-            //Get window surface
-            gScreenSurface = SDL_GetWindowSurface(gWindow);
+            screenSurface = SDL_GetWindowSurface(window);
         }
     }
 
@@ -63,14 +51,9 @@ bool init()
 
 void close()
 {
-    //Clean up surface
-    SDL_DestroySurface(gHelloWorld);
-    gHelloWorld = nullptr;
-
-    //Destroy window
-    SDL_DestroyWindow(gWindow);
-    gWindow = nullptr;
-    gScreenSurface = nullptr;
+    SDL_DestroyWindow(window);
+    window = nullptr;
+    screenSurface = nullptr;
 
     //Quit SDL subsystems
     SDL_Quit();
@@ -79,61 +62,51 @@ void close()
 
 int main(int argc, char* args[])
 {
-    //Final exit code
     int exitCode{ 0 };
 
     int blueCount{ 240 };
 
-	constexpr int framesBeforeBlueChange{ 5000 };
+	constexpr int framesBeforeBlueChange{ 500 };
 	int currentFrameCount{ 0 };
 
-
-    //Initialize
-    if (init() == false)
+    // init maakt een window aan met SDL en koppelt screenSurface aan de window
+    if (!init())
     {
         SDL_Log("Unable to initialize program!\n");
         exitCode = 1;
     }
     else
     {
-        //The quit flag
         bool quit{ false };
 
-        //The event data
         SDL_Event e;
         SDL_zero(e);
 
-        //The main loop
         while (quit == false)
         {
-            //Get event data
             while (SDL_PollEvent(&e))
             {
-                //If event is quit type
                 if (e.type == SDL_EVENT_QUIT)
                 {
-                    //End the main loop
                     quit = true;
                 }
             }
-            //Fill the surface with changing blueish color
+
 			currentFrameCount++;
             if (currentFrameCount >= framesBeforeBlueChange)
             {
                 currentFrameCount = 0;
 				blueCount = (blueCount + 200) % 256;
             }
-            SDL_FillSurfaceRect(gScreenSurface, nullptr, SDL_MapSurfaceRGB(gScreenSurface, 140, 140, blueCount));
 
-            //Render image on screen
-            SDL_BlitSurface(gHelloWorld, nullptr, gScreenSurface, nullptr);
+            // SDL functies voor het vullen van een rect (zo groot als het scherm) met een kleur en het updaten van de window
+            SDL_FillSurfaceRect(screenSurface, nullptr, SDL_MapSurfaceRGB(screenSurface, 140, 140, blueCount));
 
-            //Update the surface
-            SDL_UpdateWindowSurface(gWindow);
+            SDL_UpdateWindowSurface(window);
         }
     }
 
-    //Clean up
+    // Ruimt variabelen op en sluit SDL af
     close();
 
     return exitCode;
