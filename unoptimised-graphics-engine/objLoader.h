@@ -3,6 +3,14 @@
 #include<vector>
 #include<glm/glm.hpp>
 
+struct Texture 
+{
+	int width{ 0 };
+	int height{ 0 };
+
+	std::vector<uint32_t> pixels;
+};
+
 struct ObjFace
 {
 	std::vector<int> vertexIndices;
@@ -21,5 +29,7 @@ struct ObjData
 
 
 };
+
+Texture loadTexture(const std::string& filename);
 
 ObjData loadObjFile(const std::string& filename);
