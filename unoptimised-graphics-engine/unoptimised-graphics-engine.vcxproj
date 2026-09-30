@@ -22,6 +22,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="objLoader.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="objLoader.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

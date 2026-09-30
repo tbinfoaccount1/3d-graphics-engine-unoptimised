@@ -42,6 +42,7 @@ bool init()
         }
         else
         {
+            SDL_Log("Window created");
             screenSurface = SDL_GetWindowSurface(window);
         }
     }
