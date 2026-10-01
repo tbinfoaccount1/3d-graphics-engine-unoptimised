@@ -30,6 +30,22 @@ Texture loadTexture(const std::string& filename)
 	return texture;
 }
 
+std::vector<Material> loadMtlFile(const std::string& filename)
+{
+	std::vector<Material> materials;
+	std::ifstream file(filename);
+	if (!file.is_open())
+	{
+		throw std::runtime_error("Could not open file: " + filename);
+	}
+	std::string line;
+	while (std::getline(file, line))
+	{
+		// load material properties from the .mtl file
+	}
+	return materials;
+}
+
 ObjData loadObjFile(const std::string& filename)
 {
 	ObjData objData;
@@ -38,7 +54,10 @@ ObjData loadObjFile(const std::string& filename)
 	{
 		throw std::runtime_error("Could not open file: " + filename);
 	}
+
 	std::string line;
+	int currentMaterialIndex = -1;
+
 	while (std::getline(file, line))
 	{
 		if (line.starts_with("v "))
@@ -83,9 +102,27 @@ ObjData loadObjFile(const std::string& filename)
 				face.normalIndices.push_back(vn1 - 1);
 				face.normalIndices.push_back(vn2 - 1);
 				face.normalIndices.push_back(vn3 - 1);
+				face.materialIndex = currentMaterialIndex;
 				objData.faces.push_back(face);
 			}
 			else throw std::runtime_error("Unable to read face line: " + line);
+		}
+		else if (line.starts_with("usemtl "))
+		{
+			std::string materialName = line.substr(7);
+			for (size_t i = 0; i < objData.materials.size(); ++i)
+			{
+				if (objData.materials[i].name == materialName)
+				{
+					currentMaterialIndex = static_cast<int>(i);
+					break;
+				}
+			}
+		}
+		else if (line.starts_with("mtllib "))
+		{
+			std::string mtlFilename = line.substr(7);
+			objData.materials = loadMtlFile(mtlFilename);
 		}
 	}
 	return objData;
