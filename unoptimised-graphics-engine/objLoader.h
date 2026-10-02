@@ -9,6 +9,8 @@ struct Texture
 	int height{ 0 };
 
 	std::vector<uint32_t> pixels;
+
+	bool isEmpty() const { return pixels.empty(); }
 };
 
 struct Material
@@ -23,11 +25,14 @@ struct Material
 	float shininess{ 0.0f };
 	float opticalDensity{ 1.0f };
 
-	float dissolve{ 1.0f };
+	float transparency{ 1.0f };
 
+	Texture ambientTexture;
 	Texture diffuseTexture;
 	Texture specularTexture;
-
+	Texture shininessTexture;
+	Texture transparencyTexture;
+	Texture bumpTexture;
 };
 
 struct ObjFace

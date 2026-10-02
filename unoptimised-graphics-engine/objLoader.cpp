@@ -41,7 +41,102 @@ std::vector<Material> loadMtlFile(const std::string& filename)
 	std::string line;
 	while (std::getline(file, line))
 	{
-		// load material properties from the .mtl file
+		if (line.starts_with("newmtl "))
+		{
+			Material material;
+			material.name = line.substr(7);
+			materials.push_back(material);
+		}
+		else if (line.starts_with("Ka "))
+		{
+			float r, g, b;
+			if (sscanf_s(line.c_str(), "Ka %f %f %f", &r, &g, &b) == 3)
+			{
+				materials.back().ambientColor = glm::vec3{ r, g, b };
+			}
+		}
+		else if (line.starts_with("Kd "))
+		{
+			float r, g, b;
+			if (sscanf_s(line.c_str(), "Kd %f %f %f", &r, &g, &b) == 3)
+			{
+				materials.back().diffuseColor = glm::vec3{ r, g, b };
+			}
+		}
+		else if (line.starts_with("Ks "))
+		{
+			float r, g, b;
+			if (sscanf_s(line.c_str(), "Ks %f %f %f", &r, &g, &b) == 3)
+			{
+				materials.back().specularColor = glm::vec3{ r, g, b };
+			}
+		}
+		else if (line.starts_with("Ns "))
+		{
+			float shininess;
+			if (sscanf_s(line.c_str(), "Ns %f", &shininess) == 1)
+			{
+				materials.back().shininess = shininess;
+			}
+		}
+		else if (line.starts_with("d "))
+		{
+			float transparency;
+			if (sscanf_s(line.c_str(), "d %f", &transparency) == 1)
+			{
+				materials.back().transparency = transparency;
+			}
+		}
+		else if (line.starts_with("Ni "))
+		{
+			float opticalDensity;
+			if (sscanf_s(line.c_str(), "Ni %f", &opticalDensity) == 1)
+			{
+				materials.back().opticalDensity = opticalDensity;
+			}
+		}
+		else if (line.starts_with("Tf "))
+		{
+			float r, g, b;
+			if (sscanf_s(line.c_str(), "Tf %f %f %f", &r, &g, &b) == 3)
+			{
+				materials.back().transmissionFilter = glm::vec3{ r, g, b };
+			}
+		}
+		else if (line.starts_with("map_Ka "))
+		{
+			std::string textureFilename = line.substr(7);
+			materials.back().ambientTexture = loadTexture(textureFilename);
+		}
+		else if (line.starts_with("map_Kd "))
+		{
+			std::string textureFilename = line.substr(7);
+			materials.back().diffuseTexture = loadTexture(textureFilename);
+		}
+		else if (line.starts_with("map_Ks "))
+		{
+			std::string textureFilename = line.substr(7);
+			materials.back().specularTexture = loadTexture(textureFilename);
+		}
+		else if (line.starts_with("map_Ns "))
+		{
+			std::string textureFilename = line.substr(7);
+			materials.back().shininessTexture = loadTexture(textureFilename);
+		}
+		else if (line.starts_with("map_d "))
+		{
+			std::string textureFilename = line.substr(6);
+			materials.back().transparencyTexture = loadTexture(textureFilename);
+		}
+		else if (line.starts_with("map_bump ") || line.starts_with("bump "))
+		{
+			std::string textureFilename;
+			if (line.starts_with("map_bump "))
+				textureFilename = line.substr(9);
+			else
+				textureFilename = line.substr(5);
+			materials.back().bumpTexture = loadTexture(textureFilename);
+		}
 	}
 	return materials;
 }

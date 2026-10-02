@@ -21,38 +21,6 @@ void close();
 SDL_Window* window{ nullptr };
 SDL_Renderer* renderer{ nullptr };
 
-SDL_Texture* sdlTexture{ nullptr };
-
-
-SDL_Texture* createSDLTexture(
-    SDL_Renderer* renderer,
-    const Texture& texture)
-{
-    SDL_Texture* sdlTexture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA32,
-        SDL_TEXTUREACCESS_STATIC,
-        texture.width,
-        texture.height
-    );
-
-    if (!sdlTexture)
-    {
-        throw std::runtime_error(
-            "Failed to create SDL texture: " +
-            std::string(SDL_GetError())
-        );
-    }
-
-    SDL_UpdateTexture(
-        sdlTexture,
-        nullptr,
-        texture.pixels.data(),
-        texture.width * sizeof(std::uint32_t)
-    );
-
-    return sdlTexture;
-}
 
 
 bool init()
@@ -82,9 +50,6 @@ bool init()
 				SDL_Log("Renderer could not be created! SDL error: %s\n", SDL_GetError());
 				success = false;
 			}
-
-            Texture texture = loadTexture("house.png");
-            sdlTexture = createSDLTexture(renderer, texture);
         }
     }
 
@@ -113,30 +78,28 @@ int main(int argc, char* args[])
     {
         SDL_Log("Unable to initialize program!\n");
         exitCode = 1;
+        close();
+		return exitCode;
     }
-    else
+
+    bool quit{ false };
+
+    SDL_Event e;
+    SDL_zero(e);
+
+    while (quit == false)
     {
-        bool quit{ false };
-
-        SDL_Event e;
-        SDL_zero(e);
-
-        while (quit == false)
+        while (SDL_PollEvent(&e))
         {
-            while (SDL_PollEvent(&e))
+            if (e.type == SDL_EVENT_QUIT)
             {
-                if (e.type == SDL_EVENT_QUIT)
-                {
-                    quit = true;
-                }
+                quit = true;
             }
-
-			SDL_RenderClear(renderer);
-
-            SDL_RenderTexture(renderer, sdlTexture, nullptr, nullptr);
-
-			SDL_RenderPresent(renderer);
         }
+
+		SDL_RenderClear(renderer);
+
+		SDL_RenderPresent(renderer);
     }
 
     // Ruimt variabelen op en sluit SDL af
