@@ -15,11 +15,19 @@ struct Material
 {
 	std::string name;
 
-	glm::vec3 diffuseColor{ 1.0f, 1.0f, 1.0f };
-	glm::vec3 specularColor{ 1.0f, 1.0f, 1.0f };
+	glm::vec3 ambientColor{ 1.0f };
+	glm::vec3 diffuseColor{ 1.0f };
+	glm::vec3 specularColor{ 1.0f };
+	glm::vec3 transmissionFilter{ 1.0f };
+
 	float shininess{ 0.0f };
+	float opticalDensity{ 1.0f };
+
+	float dissolve{ 1.0f };
 
 	Texture diffuseTexture;
+	Texture specularTexture;
+
 };
 
 struct ObjFace
