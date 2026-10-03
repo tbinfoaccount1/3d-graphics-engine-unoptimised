@@ -58,6 +58,6 @@ struct ObjData
 
 Texture loadTexture(const std::string& filename);
 
-std::vector<Material> loadMtlFile(const std::string& filename);
+void loadMtlFile(const std::string& filename);
 
 ObjData loadObjFile(const std::string& filename);

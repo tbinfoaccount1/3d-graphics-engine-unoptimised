@@ -1,6 +1,7 @@
 #include <fstream>
 #include <string>
 #include <SDL_image.h>
+#include <filesystem>
 
 #include "objLoader.h"
 
@@ -30,13 +31,13 @@ Texture loadTexture(const std::string& filename)
 	return texture;
 }
 
-std::vector<Material> loadMtlFile(const std::string& filename)
+void loadMtlFile(const std::string& filename, std::vector<Material>& materials)
 {
-	std::vector<Material> materials;
-	std::ifstream file(filename);
+	std::filesystem::path filePath = std::filesystem::path(filename);
+	std::ifstream file(filePath);
 	if (!file.is_open())
 	{
-		throw std::runtime_error("Could not open file: " + filename);
+		throw std::runtime_error("Could not open file: " + filePath.string());
 	}
 	std::string line;
 	while (std::getline(file, line))
@@ -106,27 +107,27 @@ std::vector<Material> loadMtlFile(const std::string& filename)
 		else if (line.starts_with("map_Ka "))
 		{
 			std::string textureFilename = line.substr(7);
-			materials.back().ambientTexture = loadTexture(textureFilename);
+			materials.back().ambientTexture = loadTexture((filePath.parent_path() / textureFilename).string());
 		}
 		else if (line.starts_with("map_Kd "))
 		{
 			std::string textureFilename = line.substr(7);
-			materials.back().diffuseTexture = loadTexture(textureFilename);
+			materials.back().diffuseTexture = loadTexture((filePath.parent_path() / textureFilename).string());
 		}
 		else if (line.starts_with("map_Ks "))
 		{
 			std::string textureFilename = line.substr(7);
-			materials.back().specularTexture = loadTexture(textureFilename);
+			materials.back().specularTexture = loadTexture((filePath.parent_path() / textureFilename).string());
 		}
 		else if (line.starts_with("map_Ns "))
 		{
 			std::string textureFilename = line.substr(7);
-			materials.back().shininessTexture = loadTexture(textureFilename);
+			materials.back().shininessTexture = loadTexture((filePath.parent_path() / textureFilename).string());
 		}
 		else if (line.starts_with("map_d "))
 		{
 			std::string textureFilename = line.substr(6);
-			materials.back().transparencyTexture = loadTexture(textureFilename);
+			materials.back().transparencyTexture = loadTexture((filePath.parent_path() / textureFilename).string());
 		}
 		else if (line.starts_with("map_bump ") || line.starts_with("bump "))
 		{
@@ -135,19 +136,19 @@ std::vector<Material> loadMtlFile(const std::string& filename)
 				textureFilename = line.substr(9);
 			else
 				textureFilename = line.substr(5);
-			materials.back().bumpTexture = loadTexture(textureFilename);
+			materials.back().bumpTexture = loadTexture((filePath.parent_path() / textureFilename).string());
 		}
 	}
-	return materials;
 }
 
 ObjData loadObjFile(const std::string& filename)
 {
 	ObjData objData;
-	std::ifstream file(filename);
+	std::filesystem::path filePath = std::filesystem::path(filename);
+	std::ifstream file(filePath);
 	if (!file.is_open())
 	{
-		throw std::runtime_error("Could not open file: " + filename);
+		throw std::runtime_error("Could not open file: " + filePath.string());
 	}
 
 	std::string line;
@@ -217,7 +218,7 @@ ObjData loadObjFile(const std::string& filename)
 		else if (line.starts_with("mtllib "))
 		{
 			std::string mtlFilename = line.substr(7);
-			objData.materials = loadMtlFile(mtlFilename);
+			loadMtlFile((filePath.parent_path() / mtlFilename).string(), objData.materials);
 		}
 	}
 	return objData;
