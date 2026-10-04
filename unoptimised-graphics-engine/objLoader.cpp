@@ -2,6 +2,7 @@
 #include <string>
 #include <SDL_image.h>
 #include <filesystem>
+#include <iostream>
 
 #include "objLoader.h"
 
