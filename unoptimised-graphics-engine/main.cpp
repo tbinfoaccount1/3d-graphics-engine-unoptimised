@@ -15,9 +15,20 @@ constexpr int kScreenHeight{ 480 };
 
 FrameBuffer frameBuffer(kScreenWidth, kScreenHeight);
 
+
+// Camera
 glm::vec3 cameraPosition(0.0f, 0.0f, 5.0f);
 glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+glm::vec3 cameraRotation(0.0f, 0.0f, 0.0f);
+
+glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
+float cameraSpeed{ 0.3f };
+
+// Object
+glm::vec3 objectPosition(0.0f, 0.0f, 0.0f);
+glm::vec3 objectRotation(0.0f, 0.0f, 0.0f);
+glm::vec3 objectScale(1.0f, 1.0f, 1.0f);
 
 
 // Functies initialiseren
@@ -95,6 +106,7 @@ int main(int argc, char* args[])
 	ObjData objData = loadObjFile("cube.obj");
 
     bool quit{ false };
+    bool wPressed{ false }, aPressed{ false }, sPressed{ false }, dPressed{ false }, spacePressed{ false }, cPressed{ false };
 
     SDL_Event e;
     SDL_zero(e);
@@ -107,11 +119,55 @@ int main(int argc, char* args[])
             {
                 quit = true;
             }
+            else if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP)
+            {
+				bool isKeyDown = e.type == SDL_EVENT_KEY_DOWN;
+                switch (e.key.key)
+                {
+				    case SDLK_W:
+					    wPressed = isKeyDown;
+					    break;
+					case SDLK_A:
+						aPressed = isKeyDown;
+						break;
+                    case SDLK_S:
+						sPressed = isKeyDown;
+						break;
+                    case SDLK_D:
+                        dPressed = isKeyDown;
+                        break;
+                    case SDLK_SPACE:
+						spacePressed = isKeyDown;
+                        break;
+                    case SDLK_C:
+						cPressed = isKeyDown;
+						break;
+                }
+            }
         }
+
+        glm::vec3 cameraFront = glm::normalize(glm::vec3(
+            cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x)),
+            sin(glm::radians(cameraRotation.x)),
+            sin(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x))
+        ));
+
+		cameraMovement = glm::vec3(dPressed - aPressed, spacePressed - cPressed, sPressed - wPressed) * cameraSpeed;
+		cameraPosition += cameraMovement;
+		cameraTarget += cameraMovement;
 
         clearFrameBuffer(frameBuffer, 0xFFFFA0A0);
 
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		modelMatrix = glm::translate(modelMatrix, objectPosition);
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+		modelMatrix = glm::scale(modelMatrix, objectScale);
+
+        cameraRotation.y += 1;
+		cameraTarget = cameraPosition + cameraFront;
+
 		glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 		glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), static_cast<float>(frameBuffer.width) / static_cast<float>(frameBuffer.height), 0.1f, 100.0f);
 
