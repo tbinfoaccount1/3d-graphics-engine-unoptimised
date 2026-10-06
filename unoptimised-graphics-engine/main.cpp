@@ -20,7 +20,7 @@ FrameBuffer frameBuffer(kScreenWidth, kScreenHeight);
 glm::vec3 cameraPosition(0.0f, 0.0f, 5.0f);
 glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
-glm::vec3 cameraRotation(0.0f, 0.0f, 0.0f);
+glm::vec3 cameraRotation(0.0f, -90.0f, 0.0f);
 
 glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
 float cameraSpeed{ 0.3f };
@@ -146,15 +146,8 @@ int main(int argc, char* args[])
             }
         }
 
-        glm::vec3 cameraFront = glm::normalize(glm::vec3(
-            cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x)),
-            sin(glm::radians(cameraRotation.x)),
-            sin(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x))
-        ));
-
 		cameraMovement = glm::vec3(dPressed - aPressed, spacePressed - cPressed, sPressed - wPressed) * cameraSpeed;
 		cameraPosition += cameraMovement;
-		cameraTarget += cameraMovement;
 
         clearFrameBuffer(frameBuffer, 0xFFFFA0A0);
 
@@ -165,7 +158,11 @@ int main(int argc, char* args[])
 		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		modelMatrix = glm::scale(modelMatrix, objectScale);
 
-        cameraRotation.y += 1;
+        glm::vec3 cameraFront = glm::normalize(glm::vec3(
+            cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x)),
+            sin(glm::radians(cameraRotation.x)),
+            sin(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x))
+        ));
 		cameraTarget = cameraPosition + cameraFront;
 
 		glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
@@ -180,6 +177,13 @@ int main(int argc, char* args[])
 			glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[0]], 1.0f);
 			glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f);
 			glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f);
+
+            if (v0.w <= 0.0f ||
+                v1.w <= 0.0f ||
+                v2.w <= 0.0f)
+            {
+                continue;
+            }
 
 			v0 /= v0.w;
 			v1 /= v1.w;
