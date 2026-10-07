@@ -20,15 +20,17 @@ FrameBuffer frameBuffer(kScreenWidth, kScreenHeight);
 glm::vec3 cameraPosition(0.0f, 0.0f, 5.0f);
 glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+
 glm::vec3 cameraRotation(0.0f, -90.0f, 0.0f);
+float cameraSensitivity{ 2.0f };
 
 glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
 float cameraSpeed{ 0.3f };
 
 // Object
-glm::vec3 objectPosition(0.0f, 0.0f, 0.0f);
-glm::vec3 objectRotation(0.0f, 0.0f, 0.0f);
-glm::vec3 objectScale(1.0f, 1.0f, 1.0f);
+glm::vec3 objectPosition(0.5f, 0.0f, 0.0f);
+glm::vec3 objectRotation(105.0f, 25.0f, 60.0f);
+glm::vec3 objectScale(1.0f, 2.0f, 1.5f);
 
 
 // Functies initialiseren
@@ -106,7 +108,7 @@ int main(int argc, char* args[])
 	ObjData objData = loadObjFile("cube.obj");
 
     bool quit{ false };
-    bool wPressed{ false }, aPressed{ false }, sPressed{ false }, dPressed{ false }, spacePressed{ false }, cPressed{ false };
+    bool wPressed{ false }, aPressed{ false }, sPressed{ false }, dPressed{ false }, spacePressed{ false }, cPressed{ false }, ePressed{ false }, qPressed{ false };
 
     SDL_Event e;
     SDL_zero(e);
@@ -142,11 +144,19 @@ int main(int argc, char* args[])
                     case SDLK_C:
 			            cPressed = isKeyDown;
 			            break;
+					case SDLK_E:
+						ePressed = isKeyDown;
+						break;
+                    case SDLK_Q:
+						qPressed = isKeyDown;
+						break;
                 }
             }
         }
-        cameraRotation.y += 1;
-        cameraMovement = glm::vec3(dPressed - aPressed, spacePressed - cPressed, sPressed - wPressed) * cameraSpeed;
+        cameraRotation.y += (ePressed - qPressed) * cameraSensitivity;
+		if (cameraRotation.y > 360.0f) cameraRotation.y -= 360.0f;
+		if (cameraRotation.y < 0.0f) cameraRotation.y += 360.0f;
+        cameraMovement = glm::vec3(dPressed - aPressed, spacePressed - cPressed, wPressed - sPressed) * cameraSpeed;
 
         clearFrameBuffer(frameBuffer, 0xFFFFA0A0);
 
@@ -163,15 +173,15 @@ int main(int argc, char* args[])
             sin(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x))
         ));
 
-		glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
-		glm::vec3 cameraFrontXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
+        glm::vec3 cameraFrontXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
+        glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFrontXZ, cameraUp));
 
-		cameraPosition += cameraRight * cameraMovement.x;
-		cameraPosition -= cameraFrontXZ * cameraMovement.z;
+        cameraPosition += cameraRight * cameraMovement.x;
+        cameraPosition += cameraFrontXZ * cameraMovement.z;
         cameraPosition.y += cameraMovement.y;
-		cameraTarget = cameraPosition + cameraFront;
+        cameraTarget = cameraPosition + cameraFront;
 
-		glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+        glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 		glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), static_cast<float>(frameBuffer.width) / static_cast<float>(frameBuffer.height), 0.1f, 100.0f);
 
 		glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
