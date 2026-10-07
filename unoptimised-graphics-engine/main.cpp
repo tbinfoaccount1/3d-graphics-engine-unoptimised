@@ -121,48 +121,54 @@ int main(int argc, char* args[])
             }
             else if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP)
             {
-				bool isKeyDown = e.type == SDL_EVENT_KEY_DOWN;
+	            bool isKeyDown = e.type == SDL_EVENT_KEY_DOWN;
                 switch (e.key.key)
                 {
-				    case SDLK_W:
-					    wPressed = isKeyDown;
-					    break;
-					case SDLK_A:
-						aPressed = isKeyDown;
-						break;
+		            case SDLK_W:
+			            wPressed = isKeyDown;
+			            break;
+		            case SDLK_A:
+			            aPressed = isKeyDown;
+			            break;
                     case SDLK_S:
-						sPressed = isKeyDown;
-						break;
+			            sPressed = isKeyDown;
+			            break;
                     case SDLK_D:
                         dPressed = isKeyDown;
                         break;
                     case SDLK_SPACE:
-						spacePressed = isKeyDown;
+			            spacePressed = isKeyDown;
                         break;
                     case SDLK_C:
-						cPressed = isKeyDown;
-						break;
+			            cPressed = isKeyDown;
+			            break;
                 }
             }
         }
-
-		cameraMovement = glm::vec3(dPressed - aPressed, spacePressed - cPressed, sPressed - wPressed) * cameraSpeed;
-		cameraPosition += cameraMovement;
+        cameraRotation.y += 1;
+        cameraMovement = glm::vec3(dPressed - aPressed, spacePressed - cPressed, sPressed - wPressed) * cameraSpeed;
 
         clearFrameBuffer(frameBuffer, 0xFFFFA0A0);
 
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
-		modelMatrix = glm::translate(modelMatrix, objectPosition);
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-		modelMatrix = glm::scale(modelMatrix, objectScale);
+	    glm::mat4 modelMatrix = glm::mat4(1.0f);
+	    modelMatrix = glm::translate(modelMatrix, objectPosition);
+	    modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	    modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	    modelMatrix = glm::rotate(modelMatrix, glm::radians(objectRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	    modelMatrix = glm::scale(modelMatrix, objectScale);
 
         glm::vec3 cameraFront = glm::normalize(glm::vec3(
             cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x)),
             sin(glm::radians(cameraRotation.x)),
             sin(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x))
         ));
+
+		glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+		glm::vec3 cameraFrontXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
+
+		cameraPosition += cameraRight * cameraMovement.x;
+		cameraPosition -= cameraFrontXZ * cameraMovement.z;
+        cameraPosition.y += cameraMovement.y;
 		cameraTarget = cameraPosition + cameraFront;
 
 		glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
@@ -170,30 +176,30 @@ int main(int argc, char* args[])
 
 		glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
 
-		for (int i = 0; i < objData.faces.size(); ++i)
-		{
-			ObjFace& face = objData.faces[i];
+        for (int i = 0; i < objData.faces.size(); ++i)
+        {
+	        ObjFace& face = objData.faces[i];
 
-			glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[0]], 1.0f);
-			glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f);
-			glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f);
+	        glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[0]], 1.0f);
+	        glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f);
+	        glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f);
 
-            if (v0.w <= 0.0f ||
-                v1.w <= 0.0f ||
-                v2.w <= 0.0f)
+            if (v0.x < v0.w && v0.x > -v0.w && v0.y < v0.w && v0.y > -v0.w &&
+                v1.x < v1.w && v1.x > -v1.w && v1.y < v1.w && v1.y > -v1.w &&
+                v2.x < v2.w && v2.x > -v2.w && v2.y < v2.w && v2.y > -v2.w)
             {
-                continue;
+                
             }
 
-			v0 /= v0.w;
-			v1 /= v1.w;
+            v0 /= v0.w;
+            v1 /= v1.w;
             v2 /= v2.w;
 
-			glm::vec2 screenV0 = glm::vec2((v0.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v0.y + 1.0f) * 0.5f) * frameBuffer.height);
-			glm::vec2 screenV1 = glm::vec2((v1.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v1.y + 1.0f) * 0.5f) * frameBuffer.height);
-			glm::vec2 screenV2 = glm::vec2((v2.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v2.y + 1.0f) * 0.5f) * frameBuffer.height);
+            glm::vec2 screenV0 = glm::vec2((v0.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v0.y + 1.0f) * 0.5f) * frameBuffer.height);
+            glm::vec2 screenV1 = glm::vec2((v1.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v1.y + 1.0f) * 0.5f) * frameBuffer.height);
+            glm::vec2 screenV2 = glm::vec2((v2.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v2.y + 1.0f) * 0.5f) * frameBuffer.height);
 
-			drawTriangle(frameBuffer, screenV0, screenV1, screenV2, 0xFF00FF00);
+            drawTriangle(frameBuffer, screenV0, screenV1, screenV2, 0xFF00FF00);
 		}
 
 		SDL_UpdateTexture(frameBufferTexture, nullptr, frameBuffer.pixels.data(), frameBuffer.width * sizeof(uint32_t));
