@@ -30,30 +30,3 @@ void drawTriangle(FrameBuffer& frameBuffer, glm::vec2 v0, glm::vec2 v1, glm::vec
 		}
 	}
 }
-
-void drawMultiVertexShape(FrameBuffer& frameBuffer, const std::vector<glm::vec2>& vertices, uint32_t color)
-{
-	if (vertices.size() < 3) return;
-	for (int y = 0; y < frameBuffer.height; ++y)
-	{
-		for (int x = 0; x < frameBuffer.width; ++x)
-		{
-			glm::vec2 p(x, y);
-			bool inside = true;
-			for (size_t i = 0; i < vertices.size(); ++i)
-			{
-				glm::vec2 v0 = vertices[i];
-				glm::vec2 v1 = vertices[(i + 1) % vertices.size()];
-				if (cross2D(v1 - v0, p - v0) < 0)
-				{
-					inside = false;
-					break;
-				}
-			}
-			if (inside)
-			{
-				frameBuffer.pixels[y * frameBuffer.width + x] = color;
-			}
-		}
-	}
-}

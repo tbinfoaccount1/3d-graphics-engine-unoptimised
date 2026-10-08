@@ -24,12 +24,18 @@
     <ClCompile Include="rasterizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="clipper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="objLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rasterizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clipper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

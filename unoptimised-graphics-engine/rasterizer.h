@@ -17,5 +17,3 @@ float cross2D(const glm::vec2& a, const glm::vec2& b);
 void clearFrameBuffer(FrameBuffer& framebuffer, uint32_t color);
 
 void drawTriangle(FrameBuffer& frameBuffer, glm::vec2 v0, glm::vec2 v1, glm::vec2 v2, uint32_t color);
-
-void drawMultiVertexShape(FrameBuffer& frameBuffer, const std::vector<glm::vec2>& vertices, uint32_t color);

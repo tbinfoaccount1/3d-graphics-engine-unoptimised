@@ -7,6 +7,7 @@
 
 #include "objLoader.h"
 #include "rasterizer.h"
+#include "clipper.h"
 
 
 // Schermgrootte
@@ -194,22 +195,24 @@ int main(int argc, char* args[])
 	        glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f);
 	        glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f);
 
-            if (v0.x < v0.w && v0.x > -v0.w && v0.y < v0.w && v0.y > -v0.w &&
-                v1.x < v1.w && v1.x > -v1.w && v1.y < v1.w && v1.y > -v1.w &&
-                v2.x < v2.w && v2.x > -v2.w && v2.y < v2.w && v2.y > -v2.w)
+			std::vector<std::array<glm::vec4, 3>> clippedTriangles = clipTriangle(v0, v1, v2);
+
+            for (const std::array<glm::vec4, 3>&clippedTriangle : clippedTriangles)
             {
-                
+                v0 = clippedTriangle[0];
+                v1 = clippedTriangle[1];
+                v2 = clippedTriangle[2];
+
+                v0 /= v0.w;
+                v1 /= v1.w;
+                v2 /= v2.w;
+
+                glm::vec2 screenV0 = glm::vec2((v0.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v0.y + 1.0f) * 0.5f) * frameBuffer.height);
+                glm::vec2 screenV1 = glm::vec2((v1.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v1.y + 1.0f) * 0.5f) * frameBuffer.height);
+                glm::vec2 screenV2 = glm::vec2((v2.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v2.y + 1.0f) * 0.5f) * frameBuffer.height);
+
+                drawTriangle(frameBuffer, screenV0, screenV1, screenV2, 0xFF00FF00);
             }
-
-            v0 /= v0.w;
-            v1 /= v1.w;
-            v2 /= v2.w;
-
-            glm::vec2 screenV0 = glm::vec2((v0.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v0.y + 1.0f) * 0.5f) * frameBuffer.height);
-            glm::vec2 screenV1 = glm::vec2((v1.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v1.y + 1.0f) * 0.5f) * frameBuffer.height);
-            glm::vec2 screenV2 = glm::vec2((v2.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v2.y + 1.0f) * 0.5f) * frameBuffer.height);
-
-            drawTriangle(frameBuffer, screenV0, screenV1, screenV2, 0xFF00FF00);
 		}
 
 		SDL_UpdateTexture(frameBufferTexture, nullptr, frameBuffer.pixels.data(), frameBuffer.width * sizeof(uint32_t));
