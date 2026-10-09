@@ -3,4 +3,10 @@
 #include <array>
 #include <glm/glm.hpp>
 
-std::vector<std::array<glm::vec4, 3>> clipTriangle(const glm::vec4 v0, const glm::vec4 v1, const glm::vec4 v2);
+struct ClipVertex
+{
+	glm::vec4 position;
+	glm::vec2 uv;
+};
+
+std::vector<std::array<ClipVertex, 3>> clipTriangle(const ClipVertex v0, const ClipVertex v1, const ClipVertex v2);

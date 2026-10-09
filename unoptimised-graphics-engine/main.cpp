@@ -186,32 +186,45 @@ int main(int argc, char* args[])
 		glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), static_cast<float>(frameBuffer.width) / static_cast<float>(frameBuffer.height), 0.1f, 100.0f);
 
 		glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-
+        
         for (int i = 0; i < objData.faces.size(); ++i)
         {
 	        ObjFace& face = objData.faces[i];
+			Material& material = objData.materials[face.materialIndex];
 
-	        glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[0]], 1.0f);
-	        glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f);
-	        glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f);
+	        glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[0]], 1.0f);
+	        glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[1]], 1.0f);
+	        glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[2]], 1.0f);
 
-			std::vector<std::array<glm::vec4, 3>> clippedTriangles = clipTriangle(v0, v1, v2);
+            glm::vec2 uv0 = objData.textureCoords[face.textureCoordIndices[0]];
+            glm::vec2 uv1 = objData.textureCoords[face.textureCoordIndices[1]];
+            glm::vec2 uv2 = objData.textureCoords[face.textureCoordIndices[2]];
 
-            for (const std::array<glm::vec4, 3>&clippedTriangle : clippedTriangles)
+			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, uv0 }, { v1, uv1 }, { v2, uv2 });
+
+            for (const std::array<ClipVertex, 3>&clippedTriangle : clippedTriangles)
             {
-                v0 = clippedTriangle[0];
-                v1 = clippedTriangle[1];
-                v2 = clippedTriangle[2];
+                ClipVertex clipV0 = clippedTriangle[0];
+                ClipVertex clipV1 = clippedTriangle[1];
+                ClipVertex clipV2 = clippedTriangle[2];
 
-                v0 /= v0.w;
-                v1 /= v1.w;
-                v2 /= v2.w;
+                float invW0 = 1.0f / clipV0.position.w;
+                float invW1 = 1.0f / clipV1.position.w;
+                float invW2 = 1.0f / clipV2.position.w;
 
-                glm::vec2 screenV0 = glm::vec2((v0.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v0.y + 1.0f) * 0.5f) * frameBuffer.height);
-                glm::vec2 screenV1 = glm::vec2((v1.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v1.y + 1.0f) * 0.5f) * frameBuffer.height);
-                glm::vec2 screenV2 = glm::vec2((v2.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (v2.y + 1.0f) * 0.5f) * frameBuffer.height);
+                float depth0 = clipV0.position.z * invW0;
+                float depth1 = clipV1.position.z * invW1;
+                float depth2 = clipV2.position.z * invW2;
 
-                drawTriangle(frameBuffer, screenV0, screenV1, screenV2, 0xFF00FF00);
+                clipV0.position /= clipV0.position.w;
+                clipV1.position /= clipV1.position.w;
+                clipV2.position /= clipV2.position.w;
+
+                glm::vec2 screenV0 = glm::vec2((clipV0.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV0.position.y + 1.0f) * 0.5f) * frameBuffer.height);
+                glm::vec2 screenV1 = glm::vec2((clipV1.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV1.position.y + 1.0f) * 0.5f) * frameBuffer.height);
+                glm::vec2 screenV2 = glm::vec2((clipV2.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV2.position.y + 1.0f) * 0.5f) * frameBuffer.height);
+
+                drawTriangle(frameBuffer, { screenV0, clipV0.uv, invW0, depth0 }, { screenV1, clipV1.uv, invW1, depth1 }, { screenV2, clipV2.uv, invW2, depth2 }, material);
             }
 		}
 

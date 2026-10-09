@@ -13,52 +13,54 @@ enum ClipPlane
 
 const ClipPlane planes[] = { ClipPlane::Left, ClipPlane::Right, ClipPlane::Bottom, ClipPlane::Top, ClipPlane::Near, ClipPlane::Far };
 
-float getBoundaryDistance(const glm::vec4& vertex, ClipPlane plane)
+float getBoundaryDistance(const glm::vec4& ClipVertex, ClipPlane plane)
 {
 	switch (plane)
 	{
 		case ClipPlane::Left:
-			return vertex.x + vertex.w;
+			return ClipVertex.x + ClipVertex.w;
 
 		case ClipPlane::Right:
-			return vertex.w - vertex.x;
+			return ClipVertex.w - ClipVertex.x;
 
 		case ClipPlane::Bottom:
-			return vertex.y + vertex.w;
+			return ClipVertex.y + ClipVertex.w;
 
 		case ClipPlane::Top:
-			return vertex.w - vertex.y;
+			return ClipVertex.w - ClipVertex.y;
 
 		case ClipPlane::Near:
-			return vertex.z + vertex.w;
+			return ClipVertex.z + ClipVertex.w;
 
 		case ClipPlane::Far:
-			return vertex.w - vertex.z;
+			return ClipVertex.w - ClipVertex.z;
 	}
 	return 0.0f;
 }
 
-std::vector<std::array<glm::vec4, 3>> clipTriangle(const glm::vec4 v0, const glm::vec4 v1, const glm::vec4 v2)
+std::vector<std::array<ClipVertex, 3>> clipTriangle(const ClipVertex v0, const ClipVertex v1, const ClipVertex v2)
 {
-	std::vector<glm::vec4> polygon { v0, v1, v2 };
+	std::vector<ClipVertex> polygon { v0, v1, v2 };
 
 	for (ClipPlane plane : planes)
 	{
-		std::vector<glm::vec4> newPolygon;
+		std::vector<ClipVertex> newPolygon;
 		for (size_t i = 0; i < polygon.size(); ++i)
 		{
-			const glm::vec4& currentVertex = polygon[i];
-			const glm::vec4& nextVertex = polygon[(i + 1) % polygon.size()];
-			float currentDistance = getBoundaryDistance(currentVertex, plane);
-			float nextDistance = getBoundaryDistance(nextVertex, plane);
+			const ClipVertex& currentClipVertex = polygon[i];
+			const ClipVertex& nextClipVertex = polygon[(i + 1) % polygon.size()];
+			float currentDistance = getBoundaryDistance(currentClipVertex.position, plane);
+			float nextDistance = getBoundaryDistance(nextClipVertex.position, plane);
 			if (currentDistance >= 0)
 			{
-				newPolygon.push_back(currentVertex);
+				newPolygon.push_back(currentClipVertex);
 			}
 			if ((currentDistance >= 0 && nextDistance < 0) || (currentDistance < 0 && nextDistance >= 0))
 			{
 				float t = currentDistance / (currentDistance - nextDistance);
-				glm::vec4 intersection = currentVertex + t * (nextVertex - currentVertex);
+				ClipVertex intersection;
+				intersection.position = currentClipVertex.position + t * (nextClipVertex.position - currentClipVertex.position);
+				intersection.uv = currentClipVertex.uv + t * (nextClipVertex.uv - currentClipVertex.uv);
 				newPolygon.push_back(intersection);
 			}
 		}
@@ -70,10 +72,10 @@ std::vector<std::array<glm::vec4, 3>> clipTriangle(const glm::vec4 v0, const glm
 		}
 	}
 
-	std::vector<std::array<glm::vec4, 3>> triangles;
+	std::vector<std::array<ClipVertex, 3>> triangles;
 	for (size_t i = 1; i < polygon.size() - 1; ++i)
 	{
-		std::array<glm::vec4, 3> triangle = { polygon[0], polygon[i], polygon[i + 1] };
+		std::array<ClipVertex, 3> triangle = { polygon[0], polygon[i], polygon[i + 1] };
 		triangles.push_back(triangle);
 	}
 	return triangles;
