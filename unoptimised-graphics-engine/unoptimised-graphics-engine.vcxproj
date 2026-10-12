@@ -20,15 +20,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="clipper.cpp" />
+    <ClCompile Include="color.cpp" />
+    <ClCompile Include="lighting.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="objLoader.cpp" />
     <ClCompile Include="rasterizer.cpp" />
+    <ClCompile Include="transparency.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clipper.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="lighting.h" />
     <ClInclude Include="objLoader.h" />
     <ClInclude Include="rasterizer.h" />
+    <ClInclude Include="transparency.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

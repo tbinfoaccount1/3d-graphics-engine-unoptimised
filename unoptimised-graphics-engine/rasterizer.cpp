@@ -1,6 +1,9 @@
 #include "rasterizer.h"
 #include "clipper.h"
 #include "color.h"
+#include "transparency.h"
+
+#include<iostream>
 
 float cross2D(const glm::vec2& a, const glm::vec2& b)
 {
@@ -26,7 +29,7 @@ uint32_t sampleTexture(const Texture& texture, const glm::vec2& uv)
 	return texture.pixels[y * texture.width + x];
 }
 
-void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material)
+void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light)
 {
 	glm::vec2 v0v1 = v1.position - v0.position;
 	glm::vec2 v1v2 = v2.position - v1.position;
@@ -67,12 +70,28 @@ void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVerte
 			}
 
 			glm::vec2 uv = (a * v0.uv * v0.invW + b * v1.uv * v1.invW + c * v2.uv * v2.invW) / denominator;
+			glm::vec3 normal = glm::normalize((a * v0.normal * v0.invW + b * v1.normal * v1.invW + c * v2.normal * v2.invW) / denominator);
 
-			uint32_t color = sampleTexture(material.diffuseTexture, uv);
+			uint32_t diffusePixelColor = sampleTexture(material.diffuseTexture, uv);
+			uint32_t diffuseColor = multiplyColors(diffusePixelColor, material.diffuseColor);
 
-			frameBuffer.pixels[y * frameBuffer.width + x] = multiplyColors(color, material.diffuseColor);
-			frameBuffer.depthBuffer[y * frameBuffer.width + x] = depth;
+			uint32_t transparencyPixel = sampleTexture(material.transparencyTexture, uv);
+			float opacity = unpackColor(transparencyPixel).r * material.transparency;
+
+			glm::vec3 lighting = material.ambientColor * light.ambientStrength + light.color * calculateDiffuse(normal, light);
+
+			uint32_t color = multiplyColors(diffuseColor, lighting);
 			
+			if (opacity >= 1.0f)
+			{
+				frameBuffer.pixels[y * frameBuffer.width + x] = color;
+				frameBuffer.depthBuffer[y * frameBuffer.width + x] = depth;
+			}
+			else if (opacity > 0.0f)
+			{
+				extern TransparencyBuffer transparencyBuffer;
+				transparencyBuffer.addFragment(x, y, depth, color, opacity);
+			}
 		}
 	}
 }

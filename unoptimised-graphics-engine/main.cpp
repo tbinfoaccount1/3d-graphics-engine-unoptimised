@@ -8,6 +8,8 @@
 #include "objLoader.h"
 #include "rasterizer.h"
 #include "clipper.h"
+#include "transparency.h"
+#include "lighting.h"
 
 
 // Schermgrootte
@@ -15,6 +17,7 @@ constexpr int kScreenWidth{ 640 };
 constexpr int kScreenHeight{ 480 };
 
 FrameBuffer frameBuffer(kScreenWidth, kScreenHeight);
+TransparencyBuffer transparencyBuffer(kScreenWidth, kScreenHeight);
 
 
 // Camera
@@ -32,6 +35,8 @@ float cameraSpeed{ 0.3f };
 glm::vec3 objectPosition(0.5f, 0.0f, 0.0f);
 glm::vec3 objectRotation(105.0f, 25.0f, 60.0f);
 glm::vec3 objectScale(1.0f, 2.0f, 1.5f);
+
+DirectionalLight light;
 
 
 // Functies initialiseren
@@ -71,7 +76,10 @@ bool init()
 			{
 				SDL_Log("Renderer could not be created! SDL error: %s\n", SDL_GetError());
 				success = false;
-			}
+		    }
+            light.ambientStrength = 0.6f;
+            light.color = { 1.0f, 1.0f, 0.6f };
+            light.direction = { -0.5f, -1.0f, -0.5f };
         }
     }
 
@@ -186,6 +194,7 @@ int main(int argc, char* args[])
 		glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), static_cast<float>(frameBuffer.width) / static_cast<float>(frameBuffer.height), 0.1f, 100.0f);
 
 		glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
         
         for (int i = 0; i < objData.faces.size(); ++i)
         {
@@ -200,7 +209,11 @@ int main(int argc, char* args[])
             glm::vec2 uv1 = objData.textureCoords[face.textureCoordIndices[1]];
             glm::vec2 uv2 = objData.textureCoords[face.textureCoordIndices[2]];
 
-			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, uv0 }, { v1, uv1 }, { v2, uv2 });
+            glm::vec3 n0 = normalMatrix * objData.normals[face.normalIndices[0]];
+            glm::vec3 n1 = normalMatrix * objData.normals[face.normalIndices[1]];
+            glm::vec3 n2= normalMatrix * objData.normals[face.normalIndices[2]];
+
+			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, n0, uv0 }, { v1, n1, uv1 }, { v2, n2, uv2 });
 
             for (const std::array<ClipVertex, 3>&clippedTriangle : clippedTriangles)
             {
@@ -224,9 +237,11 @@ int main(int argc, char* args[])
                 glm::vec2 screenV1 = glm::vec2((clipV1.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV1.position.y + 1.0f) * 0.5f) * frameBuffer.height);
                 glm::vec2 screenV2 = glm::vec2((clipV2.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV2.position.y + 1.0f) * 0.5f) * frameBuffer.height);
 
-                drawTriangle(frameBuffer, { screenV0, clipV0.uv, invW0, depth0 }, { screenV1, clipV1.uv, invW1, depth1 }, { screenV2, clipV2.uv, invW2, depth2 }, material);
+                drawTriangle(frameBuffer, { screenV0, clipV0.uv, clipV0.normal, invW0, depth0 }, { screenV1, clipV1.uv, clipV1.normal, invW1, depth1 }, { screenV2, clipV2.uv, clipV2.normal, invW2, depth2 }, material, light);
             }
 		}
+
+		transparencyBuffer.renderTransparentPixels(frameBuffer);
 
 		SDL_UpdateTexture(frameBufferTexture, nullptr, frameBuffer.pixels.data(), frameBuffer.width * sizeof(uint32_t));
 

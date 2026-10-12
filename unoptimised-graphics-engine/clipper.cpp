@@ -61,6 +61,7 @@ std::vector<std::array<ClipVertex, 3>> clipTriangle(const ClipVertex v0, const C
 				ClipVertex intersection;
 				intersection.position = currentClipVertex.position + t * (nextClipVertex.position - currentClipVertex.position);
 				intersection.uv = currentClipVertex.uv + t * (nextClipVertex.uv - currentClipVertex.uv);
+				intersection.normal = currentClipVertex.normal + t * (nextClipVertex.normal - currentClipVertex.normal);
 				newPolygon.push_back(intersection);
 			}
 		}

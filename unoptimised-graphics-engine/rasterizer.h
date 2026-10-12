@@ -2,11 +2,13 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "objLoader.h"
+#include "lighting.h"
 
 struct RasterizerVertex
 {
 	glm::vec2 position;
 	glm::vec2 uv;
+	glm::vec3 normal;
 	float invW{ 1.0f };
 	float depth{ 0.0f };
 };
@@ -21,8 +23,15 @@ struct FrameBuffer
 	FrameBuffer(int w, int h) : width(w), height(h), pixels(w* h, 0), depthBuffer(w * h, 1.0f) {};
 };
 
+struct TransparentPixel
+{
+	float depth;
+	uint32_t color;
+	float opacity;
+};
+
 float cross2D(const glm::vec2& a, const glm::vec2& b);
 
 void clearFrameBuffer(FrameBuffer& framebuffer, uint32_t color);
 
-void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material);
+void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light);
