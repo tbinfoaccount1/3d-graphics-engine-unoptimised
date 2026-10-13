@@ -156,7 +156,7 @@ ObjData loadObjFile(const std::string& filename)
 	}
 
 	std::string line;
-	int currentMaterialIndex = -1;
+	int currentMaterialIndex = 0;
 
 	while (std::getline(file, line))
 	{
@@ -224,6 +224,11 @@ ObjData loadObjFile(const std::string& filename)
 			std::string mtlFilename = line.substr(7);
 			loadMtlFile((filePath.parent_path() / mtlFilename).string(), objData.materials);
 		}
+	}
+
+	if (objData.materials.size() == 0)
+	{
+		objData.materials.push_back( Material() );
 	}
 	return objData;
 }

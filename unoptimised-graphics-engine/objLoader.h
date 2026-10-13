@@ -41,7 +41,7 @@ struct ObjFace
 	std::vector<int> textureCoordIndices;
 	std::vector<int> normalIndices;
 
-	int materialIndex{ -1 };
+	int materialIndex{ 0 };
 };
 
 

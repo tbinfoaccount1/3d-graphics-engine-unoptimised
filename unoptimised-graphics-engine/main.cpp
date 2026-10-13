@@ -100,7 +100,7 @@ void close()
 }
 
 
-int main(int argc, char* args[])
+int main(int argc, char* argv[])
 {
     int exitCode{ 0 };
 
@@ -115,7 +115,16 @@ int main(int argc, char* args[])
     }
 
 	SDL_Texture* frameBufferTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, kScreenWidth, kScreenHeight);
-	ObjData objData = loadObjFile("cube.obj");
+    
+    ObjData objData;
+    if (argc > 1)
+    {
+        objData = loadObjFile(argv[1]);
+    }
+    else
+    {
+        objData = loadObjFile("cube.obj");
+    }
 
     bool quit{ false };
     bool wPressed{ false }, aPressed{ false }, sPressed{ false }, dPressed{ false }, spacePressed{ false }, cPressed{ false }, ePressed{ false }, qPressed{ false };
@@ -219,7 +228,7 @@ int main(int argc, char* args[])
             glm::vec3 wV2 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[2]], 1.0f));
 
 			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, n0, wV0, uv0 }, { v1, n1, wV1, uv1 }, { v2, n2, wV2, uv2 });
-
+            
             for (const std::array<ClipVertex, 3>&clippedTriangle : clippedTriangles)
             {
                 ClipVertex clipV0 = clippedTriangle[0];

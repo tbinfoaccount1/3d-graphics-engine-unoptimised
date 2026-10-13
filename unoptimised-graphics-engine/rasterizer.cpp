@@ -76,17 +76,25 @@ void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVerte
 			uint32_t transparencyPixel = sampleTexture(material.transparencyTexture, uv);
 			float opacity = unpackColor(transparencyPixel).r * material.transparency;
 
-			glm::vec3 lightDirection = glm::normalize((light.type == LightType::Directional) ? light.coordinates : (worldPos - light.coordinates));
+			glm::vec3 lightDirection = (light.type == LightType::Directional) ? light.coordinates : (worldPos - light.coordinates);
+			float pointLightDistance{ 0.0f };
+			float attenuation{ 1.0f };
+			if (light.type == LightType::Point)
+			{
+				pointLightDistance = glm::length(lightDirection);
+				attenuation = 1 / (light.constant + pointLightDistance * (light.linear + pointLightDistance * light.quadratic));
+			}
+			lightDirection = glm::normalize(lightDirection);
 
 			glm::vec3 diffusePixelColor = material.diffuseColor * unpackColor3(sampleTexture(material.diffuseTexture, uv));
-			glm::vec3 diffuseColor = light.color * calculateDiffuse(normal, lightDirection) * diffusePixelColor;
+			glm::vec3 diffuseColor = attenuation * light.color * calculateDiffuse(normal, lightDirection) * diffusePixelColor;
 
 			glm::vec3 ambientPixelColor = material.ambientColor * unpackColor3(sampleTexture(material.ambientTexture, uv));
 			glm::vec3 ambientColor = light.ambientStrength * ambientPixelColor;
 
 			glm::vec3 specularPixelColor = material.specularColor * unpackColor3(sampleTexture(material.specularTexture, uv));
 			float totalShininess = material.shininess * unpackColor(sampleTexture(material.shininessTexture, uv)).r;
-			glm::vec3 specularColor = light.color * specularPixelColor * calculateSpecular(normal, lightDirection, worldPos - camPos, totalShininess);
+			glm::vec3 specularColor = attenuation * light.color * specularPixelColor * calculateSpecular(normal, lightDirection, worldPos - camPos, totalShininess);
 
 			glm::vec3 lighting = diffuseColor + ambientColor + specularColor;
 			uint32_t color = packColor(glm::vec4(glm::clamp(lighting, glm::vec3(0.0f), glm::vec3(1.0f)), 1.0f));
