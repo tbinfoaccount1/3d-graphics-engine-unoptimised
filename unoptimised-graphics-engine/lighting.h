@@ -10,4 +10,6 @@ struct DirectionalLight
 	float ambientStrength{ 0.15f };
 };
 
-float calculateDiffuse(const glm::vec3 normal, const DirectionalLight& light);
+float calculateDiffuse(const glm::vec3 normal, const glm::vec3 lightDirection);
+
+float calculateSpecular(const glm::vec3 normal, const glm::vec3 lightDirection, const glm::vec3 viewDirection, const float shininess);

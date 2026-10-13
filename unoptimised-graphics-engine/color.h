@@ -8,6 +8,7 @@ uint32_t packColor(glm::vec4 color);
 uint32_t packColor(float r, float g, float b, float a);
 
 glm::vec4 unpackColor(uint32_t color);
+glm::vec3 unpackColor3(uint32_t color);
 
 uint32_t multiplyColors(uint32_t color1, uint32_t color2);
 uint32_t multiplyColors(uint32_t color1, glm::vec4 color2);

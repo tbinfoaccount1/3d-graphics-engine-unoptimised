@@ -33,6 +33,8 @@ glm::vec4 unpackColor(uint32_t color)
 	return glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }
 
+glm::vec3 unpackColor3(uint32_t color) { return glm::vec3(unpackColor(color)); };
+
 uint32_t multiplyColors(uint32_t color1, uint32_t color2)
 {
 	glm::vec4 c1 = unpackColor(color1);

@@ -29,7 +29,7 @@ uint32_t sampleTexture(const Texture& texture, const glm::vec2& uv)
 	return texture.pixels[y * texture.width + x];
 }
 
-void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light)
+void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light, glm::vec3 camPos)
 {
 	glm::vec2 v0v1 = v1.position - v0.position;
 	glm::vec2 v1v2 = v2.position - v1.position;
@@ -71,16 +71,23 @@ void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVerte
 
 			glm::vec2 uv = (a * v0.uv * v0.invW + b * v1.uv * v1.invW + c * v2.uv * v2.invW) / denominator;
 			glm::vec3 normal = glm::normalize((a * v0.normal * v0.invW + b * v1.normal * v1.invW + c * v2.normal * v2.invW) / denominator);
-
-			uint32_t diffusePixelColor = sampleTexture(material.diffuseTexture, uv);
-			uint32_t diffuseColor = multiplyColors(diffusePixelColor, material.diffuseColor);
+			glm::vec3 worldPos = (a * v0.worldPos * v0.invW + b * v1.worldPos * v1.invW + c * v2.worldPos * v2.invW) / denominator;
 
 			uint32_t transparencyPixel = sampleTexture(material.transparencyTexture, uv);
 			float opacity = unpackColor(transparencyPixel).r * material.transparency;
 
-			glm::vec3 lighting = material.ambientColor * light.ambientStrength + light.color * calculateDiffuse(normal, light);
+			glm::vec3 diffusePixelColor = material.diffuseColor * unpackColor3(sampleTexture(material.diffuseTexture, uv));
+			glm::vec3 diffuseColor = light.color * calculateDiffuse(normal, light.direction) * diffusePixelColor;
 
-			uint32_t color = multiplyColors(diffuseColor, lighting);
+			glm::vec3 ambientPixelColor = material.ambientColor * unpackColor3(sampleTexture(material.ambientTexture, uv));
+			glm::vec3 ambientColor = light.ambientStrength * ambientPixelColor;
+
+			glm::vec3 specularPixelColor = material.specularColor * unpackColor3(sampleTexture(material.specularTexture, uv));
+			float totalShininess = material.shininess * unpackColor(sampleTexture(material.shininessTexture, uv)).r;
+			glm::vec3 specularColor = light.color * specularPixelColor * calculateSpecular(normal, light.direction, worldPos - camPos, totalShininess);
+
+			glm::vec3 lighting = diffuseColor + ambientColor + specularColor;
+			uint32_t color = packColor(glm::vec4(glm::clamp(lighting, glm::vec3(0.0f), glm::vec3(1.0f)), 1.0f));
 			
 			if (opacity >= 1.0f)
 			{

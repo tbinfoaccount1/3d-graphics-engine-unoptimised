@@ -9,6 +9,7 @@ struct RasterizerVertex
 	glm::vec2 position;
 	glm::vec2 uv;
 	glm::vec3 normal;
+	glm::vec3 worldPos;
 	float invW{ 1.0f };
 	float depth{ 0.0f };
 };
@@ -34,4 +35,4 @@ float cross2D(const glm::vec2& a, const glm::vec2& b);
 
 void clearFrameBuffer(FrameBuffer& framebuffer, uint32_t color);
 
-void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light);
+void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light, glm::vec3 camPos);

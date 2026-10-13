@@ -26,15 +26,15 @@ glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
 glm::vec3 cameraRotation(0.0f, -90.0f, 0.0f);
-float cameraSensitivity{ 2.0f };
+float cameraSensitivity{ 4.0f };
 
 glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
-float cameraSpeed{ 0.3f };
+float cameraSpeed{ 0.6f };
 
 // Object
 glm::vec3 objectPosition(0.5f, 0.0f, 0.0f);
-glm::vec3 objectRotation(105.0f, 25.0f, 60.0f);
-glm::vec3 objectScale(1.0f, 2.0f, 1.5f);
+glm::vec3 objectRotation(0.0f, 0.0f, 0.0f);
+glm::vec3 objectScale(1.0f, 1.0f, 1.0f);
 
 DirectionalLight light;
 
@@ -77,9 +77,9 @@ bool init()
 				SDL_Log("Renderer could not be created! SDL error: %s\n", SDL_GetError());
 				success = false;
 		    }
-            light.ambientStrength = 0.6f;
-            light.color = { 1.0f, 1.0f, 0.6f };
-            light.direction = { -0.5f, -1.0f, -0.5f };
+            light.ambientStrength = 0.3f;
+            light.color = { 1.0f, 1.0f, 1.0f };
+            light.direction = { 0.0f, 0.0f, -1.0f };
         }
     }
 
@@ -194,8 +194,8 @@ int main(int argc, char* args[])
 		glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), static_cast<float>(frameBuffer.width) / static_cast<float>(frameBuffer.height), 0.1f, 100.0f);
 
 		glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-        
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(mvpMatrix)));
+
         for (int i = 0; i < objData.faces.size(); ++i)
         {
 	        ObjFace& face = objData.faces[i];
@@ -213,7 +213,11 @@ int main(int argc, char* args[])
             glm::vec3 n1 = normalMatrix * objData.normals[face.normalIndices[1]];
             glm::vec3 n2= normalMatrix * objData.normals[face.normalIndices[2]];
 
-			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, n0, uv0 }, { v1, n1, uv1 }, { v2, n2, uv2 });
+            glm::vec3 wV0 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[0]], 1.0f));
+            glm::vec3 wV1 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[1]], 1.0f));
+            glm::vec3 wV2 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[2]], 1.0f));
+
+			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, n0, wV0, uv0 }, { v1, n1, wV1, uv1 }, { v2, n2, wV2, uv2 });
 
             for (const std::array<ClipVertex, 3>&clippedTriangle : clippedTriangles)
             {
@@ -237,7 +241,7 @@ int main(int argc, char* args[])
                 glm::vec2 screenV1 = glm::vec2((clipV1.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV1.position.y + 1.0f) * 0.5f) * frameBuffer.height);
                 glm::vec2 screenV2 = glm::vec2((clipV2.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV2.position.y + 1.0f) * 0.5f) * frameBuffer.height);
 
-                drawTriangle(frameBuffer, { screenV0, clipV0.uv, clipV0.normal, invW0, depth0 }, { screenV1, clipV1.uv, clipV1.normal, invW1, depth1 }, { screenV2, clipV2.uv, clipV2.normal, invW2, depth2 }, material, light);
+                drawTriangle(frameBuffer, { screenV0, clipV0.uv, clipV0.normal, clipV0.worldPos, invW0, depth0 }, { screenV1, clipV1.uv, clipV1.normal, clipV1.worldPos, invW1, depth1 }, { screenV2, clipV2.uv, clipV2.normal, clipV2.worldPos, invW2, depth2 }, material, light, cameraPosition);
             }
 		}
 
