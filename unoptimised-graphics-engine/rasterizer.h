@@ -35,4 +35,4 @@ float cross2D(const glm::vec2& a, const glm::vec2& b);
 
 void clearFrameBuffer(FrameBuffer& framebuffer, uint32_t color);
 
-void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, DirectionalLight light, glm::vec3 camPos);
+void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVertex v1, RasterizerVertex v2, Material& material, Light light, glm::vec3 camPos);

@@ -36,7 +36,7 @@ glm::vec3 objectPosition(0.5f, 0.0f, 0.0f);
 glm::vec3 objectRotation(0.0f, 0.0f, 0.0f);
 glm::vec3 objectScale(1.0f, 1.0f, 1.0f);
 
-DirectionalLight light;
+Light light;
 
 
 // Functies initialiseren
@@ -79,7 +79,8 @@ bool init()
 		    }
             light.ambientStrength = 0.3f;
             light.color = { 1.0f, 1.0f, 1.0f };
-            light.direction = { 0.0f, 0.0f, -1.0f };
+            light.type = LightType::Point;
+            light.coordinates = { 0.0f, 0.0f, 5.0f };
         }
     }
 

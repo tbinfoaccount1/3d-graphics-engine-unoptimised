@@ -3,12 +3,20 @@
 #include<algorithm>
 
 
-struct DirectionalLight
+enum LightType
 {
-	glm::vec3 direction{ -1.0f };
+	Directional,
+	Point
+};
+
+struct Light
+{
+	glm::vec3 coordinates{ -1.0f };
 	glm::vec3 color{ 1.0f };
 	float ambientStrength{ 0.15f };
+	LightType type{ LightType::Directional };
 };
+
 
 float calculateDiffuse(const glm::vec3 normal, const glm::vec3 lightDirection);
 
