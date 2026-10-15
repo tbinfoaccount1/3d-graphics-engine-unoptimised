@@ -10,6 +10,7 @@
 #include "clipper.h"
 #include "transparency.h"
 #include "lighting.h"
+#include "tangent.h"
 
 
 // Schermgrootte
@@ -126,6 +127,8 @@ int main(int argc, char* argv[])
         objData = loadObjFile("cube.obj");
     }
 
+    calculateTangents(objData);
+
     bool quit{ false };
     bool wPressed{ false }, aPressed{ false }, sPressed{ false }, dPressed{ false }, spacePressed{ false }, cPressed{ false }, ePressed{ false }, qPressed{ false };
 
@@ -211,9 +214,9 @@ int main(int argc, char* argv[])
 	        ObjFace& face = objData.faces[i];
 			Material& material = objData.materials[face.materialIndex];
 
-	        glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[0]], 1.0f);
-	        glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[1]], 1.0f);
-	        glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[2]], 1.0f);
+	        glm::vec4 v0 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[0]], 1.0f);
+	        glm::vec4 v1 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f);
+	        glm::vec4 v2 = mvpMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f);
 
             glm::vec2 uv0 = objData.textureCoords[face.textureCoordIndices[0]];
             glm::vec2 uv1 = objData.textureCoords[face.textureCoordIndices[1]];
@@ -223,11 +226,11 @@ int main(int argc, char* argv[])
             glm::vec3 n1 = normalMatrix * objData.normals[face.normalIndices[1]];
             glm::vec3 n2= normalMatrix * objData.normals[face.normalIndices[2]];
 
-            glm::vec3 wV0 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[0]], 1.0f));
-            glm::vec3 wV1 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[1]], 1.0f));
-            glm::vec3 wV2 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.ClipVertexIndices[2]], 1.0f));
+            glm::vec3 wV0 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.vertexIndices[0]], 1.0f));
+            glm::vec3 wV1 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.vertexIndices[1]], 1.0f));
+            glm::vec3 wV2 = glm::vec3(modelMatrix * glm::vec4(objData.vertices[face.vertexIndices[2]], 1.0f));
 
-			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, n0, wV0, uv0 }, { v1, n1, wV1, uv1 }, { v2, n2, wV2, uv2 });
+			std::vector<std::array<ClipVertex, 3>> clippedTriangles = clipTriangle({ v0, n0, wV0, uv0, face.tangents[0], face.bitangents[0] }, { v1, n1, wV1, uv1, face.tangents[1], face.bitangents[1] }, { v2, n2, wV2, uv2, face.tangents[2], face.bitangents[2] });
             
             for (const std::array<ClipVertex, 3>&clippedTriangle : clippedTriangles)
             {
@@ -251,7 +254,11 @@ int main(int argc, char* argv[])
                 glm::vec2 screenV1 = glm::vec2((clipV1.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV1.position.y + 1.0f) * 0.5f) * frameBuffer.height);
                 glm::vec2 screenV2 = glm::vec2((clipV2.position.x + 1.0f) * 0.5f * frameBuffer.width, (1.0f - (clipV2.position.y + 1.0f) * 0.5f) * frameBuffer.height);
 
-                drawTriangle(frameBuffer, { screenV0, clipV0.uv, clipV0.normal, clipV0.worldPos, invW0, depth0 }, { screenV1, clipV1.uv, clipV1.normal, clipV1.worldPos, invW1, depth1 }, { screenV2, clipV2.uv, clipV2.normal, clipV2.worldPos, invW2, depth2 }, material, light, cameraPosition);
+                RasterizerVertex rV0{ screenV0, clipV0.uv, clipV0.normal, clipV0.worldPos, invW0, depth0, clipV0.tangent, clipV0.bitangent };
+                RasterizerVertex rV1{ screenV1, clipV1.uv, clipV1.normal, clipV1.worldPos, invW1, depth1, clipV1.tangent, clipV1.bitangent };
+                RasterizerVertex rV2{ screenV2, clipV2.uv, clipV2.normal, clipV2.worldPos, invW2, depth2, clipV2.tangent, clipV2.bitangent };
+
+                drawTriangle(frameBuffer, rV0, rV1, rV2, material, light, cameraPosition);
             }
 		}
 

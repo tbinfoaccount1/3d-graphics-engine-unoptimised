@@ -11,3 +11,4 @@ newmtl Material
   Ke 0.0000 0.0000 0.0000
   map_Ka cube.png
   map_Kd cube.png
+  bump bumpbox.png

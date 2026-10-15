@@ -37,9 +37,11 @@ struct Material
 
 struct ObjFace
 {
-	std::vector<int> ClipVertexIndices;
+	std::vector<int> vertexIndices;
 	std::vector<int> textureCoordIndices;
 	std::vector<int> normalIndices;
+	glm::vec3 tangents[3] { glm::vec3(0.0f) };
+	glm::vec3 bitangents[3]{ glm::vec3(0.0f) };
 
 	int materialIndex{ 0 };
 };

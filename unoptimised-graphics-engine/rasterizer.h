@@ -12,6 +12,8 @@ struct RasterizerVertex
 	glm::vec3 worldPos;
 	float invW{ 1.0f };
 	float depth{ 0.0f };
+	glm::vec3 tangent;
+	glm::vec3 bitangent;
 };
 
 struct FrameBuffer

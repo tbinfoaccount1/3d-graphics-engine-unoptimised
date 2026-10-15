@@ -63,6 +63,8 @@ std::vector<std::array<ClipVertex, 3>> clipTriangle(const ClipVertex v0, const C
 				intersection.uv = currentClipVertex.uv + t * (nextClipVertex.uv - currentClipVertex.uv);
 				intersection.normal = currentClipVertex.normal + t * (nextClipVertex.normal - currentClipVertex.normal);
 				intersection.worldPos = currentClipVertex.worldPos + t * (nextClipVertex.worldPos - currentClipVertex.worldPos);
+				intersection.tangent = glm::mix(currentClipVertex.tangent, nextClipVertex.tangent, t);
+				intersection.bitangent = glm::mix(currentClipVertex.bitangent, nextClipVertex.bitangent, t);
 				newPolygon.push_back(intersection);
 			}
 		}

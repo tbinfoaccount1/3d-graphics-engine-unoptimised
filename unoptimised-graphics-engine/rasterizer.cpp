@@ -72,6 +72,32 @@ void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVerte
 			glm::vec2 uv = (a * v0.uv * v0.invW + b * v1.uv * v1.invW + c * v2.uv * v2.invW) / denominator;
 			glm::vec3 normal = glm::normalize((a * v0.normal * v0.invW + b * v1.normal * v1.invW + c * v2.normal * v2.invW) / denominator);
 			glm::vec3 worldPos = (a * v0.worldPos * v0.invW + b * v1.worldPos * v1.invW + c * v2.worldPos * v2.invW) / denominator;
+			glm::vec3 tangent = (a * v0.tangent * v0.invW + b * v1.tangent * v1.invW + c * v2.tangent * v2.invW) / denominator;
+			glm::vec3 bitangent = (a * v0.bitangent * v0.invW + b * v1.bitangent * v1.invW + c * v2.bitangent * v2.invW) / denominator;
+
+			tangent -= normal * glm::dot(normal, tangent);
+			float tangentLength = glm::length(tangent);
+			if (tangentLength > 0.000001f)
+			{
+				tangent /= tangentLength;
+				glm::vec3 B = glm::cross(normal, tangent);
+				if (glm::dot(B, bitangent) < 0.0f)
+					B = -B;
+				bitangent = B;
+			}
+
+			glm::vec2 texelSize(1.0f / (float)std::max(1, material.bumpTexture.width), 1.0f / (float)std::max(1, material.bumpTexture.height));
+			float heightL = unpackColor(sampleTexture(material.bumpTexture, uv - glm::vec2(texelSize.x, 0.0f))).r;
+			float heightR = unpackColor(sampleTexture(material.bumpTexture, uv + glm::vec2(texelSize.x, 0.0f))).r;
+			float heightD = unpackColor(sampleTexture(material.bumpTexture, uv - glm::vec2(0.0f, texelSize.y))).r;
+			float heightU = unpackColor(sampleTexture(material.bumpTexture, uv + glm::vec2(0.0f, texelSize.y))).r;
+			float dHeightU = (heightR - heightL) * 0.5f;
+			float dHeightV = (heightU - heightD) * 0.5f;
+
+			float bumpScale = 1.5f;
+			glm::vec3 n_tangent = glm::normalize(glm::vec3(dHeightU * bumpScale, dHeightV * bumpScale, 1.0f));
+			glm::mat3 TBN = glm::mat3(glm::normalize(tangent), glm::normalize(bitangent), normal);
+			normal = glm::normalize(TBN * n_tangent);
 
 			uint32_t transparencyPixel = sampleTexture(material.transparencyTexture, uv);
 			float opacity = unpackColor(transparencyPixel).r * material.transparency;

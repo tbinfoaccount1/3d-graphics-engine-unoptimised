@@ -193,9 +193,9 @@ ObjData loadObjFile(const std::string& filename)
 			int v1, v2, v3, vt1, vt2, vt3, vn1, vn2, vn3;
 			if (sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d", &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3) == 9)
 			{
-				face.ClipVertexIndices.push_back(v1 - 1);
-				face.ClipVertexIndices.push_back(v2 - 1);
-				face.ClipVertexIndices.push_back(v3 - 1);
+				face.vertexIndices.push_back(v1 - 1);
+				face.vertexIndices.push_back(v2 - 1);
+				face.vertexIndices.push_back(v3 - 1);
 				face.textureCoordIndices.push_back(vt1 - 1);
 				face.textureCoordIndices.push_back(vt2 - 1);
 				face.textureCoordIndices.push_back(vt3 - 1);

@@ -25,6 +25,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="objLoader.cpp" />
     <ClCompile Include="rasterizer.cpp" />
+    <ClCompile Include="tangent.cpp" />
     <ClCompile Include="transparency.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -33,6 +34,7 @@
     <ClInclude Include="lighting.h" />
     <ClInclude Include="objLoader.h" />
     <ClInclude Include="rasterizer.h" />
+    <ClInclude Include="tangent.h" />
     <ClInclude Include="transparency.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
