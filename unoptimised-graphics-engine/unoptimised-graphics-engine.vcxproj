@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="benchmark.cpp" />
     <ClCompile Include="clipper.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="lighting.cpp" />
@@ -29,6 +30,7 @@
     <ClCompile Include="transparency.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="benchmark.h" />
     <ClInclude Include="clipper.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="lighting.h" />

@@ -95,9 +95,9 @@ void drawTriangle(FrameBuffer& frameBuffer, RasterizerVertex v0, RasterizerVerte
 			float dHeightV = (heightU - heightD) * 0.5f;
 
 			float bumpScale = 1.5f;
-			glm::vec3 n_tangent = glm::normalize(glm::vec3(dHeightU * bumpScale, dHeightV * bumpScale, 1.0f));
+			glm::vec3 pixelHeight = glm::normalize(glm::vec3(dHeightU * bumpScale, dHeightV * bumpScale, 1.0f));
 			glm::mat3 TBN = glm::mat3(glm::normalize(tangent), glm::normalize(bitangent), normal);
-			normal = glm::normalize(TBN * n_tangent);
+			normal = glm::normalize(TBN * pixelHeight);
 
 			uint32_t transparencyPixel = sampleTexture(material.transparencyTexture, uv);
 			float opacity = unpackColor(transparencyPixel).r * material.transparency;

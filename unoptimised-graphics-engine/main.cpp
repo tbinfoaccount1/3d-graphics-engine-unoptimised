@@ -11,6 +11,7 @@
 #include "transparency.h"
 #include "lighting.h"
 #include "tangent.h"
+#include "benchmark.h"
 
 
 // Schermgrootte
@@ -38,6 +39,7 @@ glm::vec3 objectRotation(0.0f, 0.0f, 0.0f);
 glm::vec3 objectScale(1.0f, 1.0f, 1.0f);
 
 Light light;
+Benchmark benchmark;
 
 
 // Functies initialiseren
@@ -135,6 +137,7 @@ int main(int argc, char* argv[])
     SDL_Event e;
     SDL_zero(e);
 
+    benchmark.startMeasure();
     while (quit == false)
     {
         while (SDL_PollEvent(&e))
@@ -271,7 +274,10 @@ int main(int argc, char* argv[])
 		SDL_RenderTexture(renderer, frameBufferTexture, nullptr, nullptr);
 
 		SDL_RenderPresent(renderer);
+
+        benchmark.handleFrame();
     }
+    benchmark.stopMeasure();
 
     // Ruimt variabelen op en sluit SDL af
     close();
